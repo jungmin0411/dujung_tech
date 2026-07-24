@@ -1,0 +1,31 @@
+{
+  "package": "weld_yolov10x_box010_e12_deploy",
+  "model_family": "YOLOv10x",
+  "selected_experiment": "strong_base_soft_aug_box0p10_640_e30_lr8e5_b8",
+  "selected_human_epoch": 12,
+  "source_checkpoint_filename": "epoch11.pt",
+  "source_checkpoint_sha256": "afb35d6d6ba8ee37341164c16b3c727e9b5967025872fd7d55f2399d95c70318",
+  "deployment_model_sha256": "d41333cc4a652fb169e9bef777990dc17a3877748a1adb3cda923c5293d9c271",
+  "classes": {
+    "0": "good",
+    "1": "bad"
+  },
+  "default_inference": {
+    "imgsz": 640,
+    "conf": 0.60,
+    "iou": 0.70
+  },
+  "locked_dataset_split": {
+    "train_images": 1606,
+    "val_images": 402
+  },
+  "du22_zoom_2p0x_at_conf_0p60": {
+    "tp": 7,
+    "fp": 0,
+    "fn": 5,
+    "precision": 1.0,
+    "recall": 0.5833333333,
+    "background_fp_images": 0
+  },
+  "note": "The packaged checkpoint is optimizer-stripped for inference; model parameters are unchanged."
+}
