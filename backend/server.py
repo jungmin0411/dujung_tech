@@ -29,7 +29,7 @@ IMGSZ = 640
 app = FastAPI(title="Weld Inspection API")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://dujungtech123.jim0411.workers.dev"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
