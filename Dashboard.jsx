@@ -76,9 +76,12 @@ const LOGO_DATA_URI = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAiAAAAB4CAY
 const PART_TYPES = ["파이프", "철판", "원형봉", "H빔", "ㄱ자형강"];
 const DEFECT_TYPES = ["균열", "기공", "언더컷", "융합불량", "용입부족", "오버랩", "스패터"];
 
-// 실제 YOLO 추론 서버 (DujungTech/backend/server.py). good/bad 판정과 박스는 이 API에서 받아오고,
+// AI 추론 전용 서버 (DujungTech/backend/server.py) — good/bad 판정과 박스만 담당.
+// 모델/GPU가 있는 곳(VDI 등)에서 돌아가므로 데이터 서버와 주소가 다를 수 있다.
 // 불량 세부유형(DEFECT_TYPES)은 이 모델이 구분하지 못해 여전히 임의값으로 표시한다.
-const INFERENCE_API = "http://localhost:8000";
+const AI_API = "http://localhost:8001";
+// 검사 기록 저장/조회/삭제 전용 서버 (DujungTech/backend/data_server.py) — Postgres만 다룸.
+const DATA_API = "http://localhost:8000";
 // 같은 부품을 계속 비추고 있어도 스냅샷이 연속으로 찍히지 않도록, 한 번 찍힌 뒤엔
 // 이만큼 지나야 다음 스캔(=다음 스냅샷 기회)이 시작됨.
 const CAPTURE_COOLDOWN_MS = 2500;
@@ -95,7 +98,7 @@ const MODEL_GROUPS = [
 // 백엔드(Postgres에 저장된 실제 검사 기록)에서 날짜 범위로 가져옴 — 실패하면 빈 배열로 조용히 넘어감
 async function fetchInspections(startStr, endStr) {
   try {
-    const res = await fetch(`${INFERENCE_API}/inspections?start_date=${startStr}&end_date=${endStr}`);
+    const res = await fetch(`${DATA_API}/inspections?start_date=${startStr}&end_date=${endStr}`);
     if (!res.ok) return [];
     return await res.json();
   } catch {
@@ -106,7 +109,7 @@ async function fetchInspections(startStr, endStr) {
 // 오탐/잘못 찍힌 검사 기록을 DB에서 완전히 지움 — 이후 대시보드/검사 상세/리포트 전부 이 기록을 다시 안 보게 됨
 async function deleteInspectionRecord(id) {
   try {
-    const res = await fetch(`${INFERENCE_API}/inspections/${id}`, { method: "DELETE" });
+    const res = await fetch(`${DATA_API}/inspections/${id}`, { method: "DELETE" });
     return res.ok;
   } catch {
     return false;
@@ -1934,7 +1937,7 @@ export default function InspectionDashboard() {
     // 실제 YOLO 추론 서버로 프레임을 보내서 용접부 박스 + good/bad 판정을 받아옴
     let result;
     try {
-      const res = await fetch(`${INFERENCE_API}/predict`, {
+      const res = await fetch(`${AI_API}/predict`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ image: dataUri }),
@@ -2009,7 +2012,7 @@ export default function InspectionDashboard() {
 
     // Postgres에 저장 — 저장이 끝나면 화면(대시보드/리포트/검사상세)이 그 최신 상태를 다시 받아오도록 갱신
     try {
-      const saveRes = await fetch(`${INFERENCE_API}/inspections`, {
+      const saveRes = await fetch(`${DATA_API}/inspections`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(record),
