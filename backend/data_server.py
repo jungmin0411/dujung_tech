@@ -16,7 +16,7 @@ from db import engine, init_db, inspections
 app = FastAPI(title="Weld Inspection Data API")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://dujungtech123.jim0411.workers.dev"],
+    allow_origins=["https://dujungtech123.jim0411.workers.dev", "http://localhost:5173"],
     allow_methods=["*"],
     allow_headers=["*"],
 )

@@ -79,7 +79,7 @@ const DEFECT_TYPES = ["균열", "기공", "언더컷", "융합불량", "용입�
 // AI 추론 전용 서버 (DujungTech/backend/server.py) — good/bad 판정과 박스만 담당.
 // 모델/GPU가 있는 곳(VDI 등)에서 돌아가므로 데이터 서버와 주소가 다를 수 있다.
 // 불량 세부유형(DEFECT_TYPES)은 이 모델이 구분하지 못해 여전히 임의값으로 표시한다.
-const AI_API = "http://localhost:8001";
+const AI_API = "https://semi-designed-continental-devices.trycloudflare.com";
 // 검사 기록 저장/조회/삭제 전용 서버 (DujungTech/backend/data_server.py) — Postgres만 다룸.
 const DATA_API = "http://localhost:8000";
 // 같은 부품을 계속 비추고 있어도 스냅샷이 연속으로 찍히지 않도록, 한 번 찍힌 뒤엔
