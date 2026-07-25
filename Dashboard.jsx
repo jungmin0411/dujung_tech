@@ -2204,7 +2204,6 @@ export default function InspectionDashboard() {
 
       {/* 캡처용 캔버스 — App 루트에 항상 마운트돼 있어서 탭을 넘나들어도 자동분류 루프가 안 끊김 */}
       <canvas ref={canvasRef} style={{ display: "none" }} />
-
       <FloatingCameraPlayer
         tab={tab} connected={camConnected}
         videoElRef={videoElRef} dockRef={dockRef} streamRef={streamRef}
