@@ -196,11 +196,11 @@ function JudgmentBadge({ value, size = "md" }) {
 /* ---------------------------- Bounding-box viewer (signature element) ----------------------------
    A camera-focus / HUD-style bracketed frame rather than a plain <img>+rect —
    ties the visual language back to "the moment of inspection." */
-function InspectionFrame({ record }) {
+const InspectionFrame = React.forwardRef(function InspectionFrame({ record }, ref) {
   const { bbox, ai_judgment, image_data_uri } = record;
   const color = ai_judgment === "bad" ? TOKENS.bad : TOKENS.good;
   return (
-    <div style={{
+    <div ref={ref} style={{
       position: "relative", width: "100%", aspectRatio: "4 / 3", borderRadius: 4,
       overflow: "hidden", background: image_data_uri ? "#000" :
         "repeating-linear-gradient(135deg, #2a2620 0px, #2a2620 2px, #322d24 2px, #322d24 4px)",
@@ -253,7 +253,7 @@ function InspectionFrame({ record }) {
       }}>{record.id}</div>
     </div>
   );
-}
+});
 
 /* ---------------------------------- Overview tab ---------------------------------- */
 
@@ -718,12 +718,30 @@ function InspectionSessionDetail({ sessionId, items, onBack, onDelete }) {
   const sortedAsc = useMemo(() => [...items].sort((a, b) => a.timestamp.localeCompare(b.timestamp)), [items]);
   const [selectedId, setSelectedId] = useState(sortedAsc[sortedAsc.length - 1]?.id);
   const [deleting, setDeleting] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const frameRef = useRef(null);
   const baseRecord = items.find(d => d.id === selectedId) || items[0];
 
   // 마지막 남은 기록까지 삭제하면 폴더 안에 볼 게 없으니 자동으로 폴더 목록으로 돌아감
   useEffect(() => {
     if (items.length === 0) onBack();
   }, [items.length]);
+
+  // 화면에 보이는 그대로(사진 + 바운딩박스 오버레이 + 배지)를 캡처해서 이미지 파일로 다운로드
+  const handleDownloadImage = async () => {
+    if (!frameRef.current) return;
+    setDownloading(true);
+    try {
+      const canvas = await html2canvas(frameRef.current, { backgroundColor: "#000000", scale: 2 });
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
+      const a = document.createElement("a");
+      a.href = dataUrl;
+      a.download = `${baseRecord.id}.jpg`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   const handleDelete = async () => {
     if (!baseRecord) return;
@@ -760,7 +778,7 @@ function InspectionSessionDetail({ sessionId, items, onBack, onDelete }) {
 
           {/* center: frame */}
           <div>
-            <InspectionFrame record={baseRecord} />
+            <InspectionFrame ref={frameRef} record={baseRecord} />
             <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
               <div style={{ flex: 1, background: TOKENS.panel, border: `1px solid ${TOKENS.line}`, borderRadius: 6, padding: "12px 14px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, color: TOKENS.inkSoft, fontSize: 11.5, marginBottom: 4 }}>
@@ -778,6 +796,14 @@ function InspectionSessionDetail({ sessionId, items, onBack, onDelete }) {
                 <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 20, fontWeight: 600 }}>{baseRecord.processing_time_ms}<span style={{ fontSize: 12, color: TOKENS.inkSoft }}> ms</span></div>
               </div>
             </div>
+            <button onClick={handleDownloadImage} disabled={downloading} style={{
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 6, width: "100%",
+              marginTop: 12, padding: "9px 0", borderRadius: 6, border: `1px solid ${TOKENS.line}`,
+              background: TOKENS.panel, color: TOKENS.ink, fontSize: 12.5, fontWeight: 600,
+              cursor: downloading ? "default" : "pointer", opacity: downloading ? 0.6 : 1,
+            }}>
+              <Download size={14} /> {downloading ? "다운로드 중..." : "이미지 다운로드"}
+            </button>
           </div>
 
           {/* right: AI 판정 상세 */}
