@@ -85,7 +85,7 @@ const DEFECT_TYPES = ["균열", "기공", "언더컷", "융합불량", "용입�
 // 불량 세부유형(DEFECT_TYPES)은 이 모델이 구분하지 못해 여전히 임의값으로 표시한다.
 const AI_API = "https://crowd-blair-slim-track.trycloudflare.com";
 // 검사 기록 저장/조회/삭제 전용 서버 (DujungTech/backend/data_server.py) — Postgres만 다룸.
-const DATA_API = "https://useful-writer-imaging-designers.trycloudflare.com";
+const DATA_API = "https://rico-arts-reported-sku.trycloudflare.com";
 // 같은 부품을 계속 비추고 있어도 스냅샷이 연속으로 찍히지 않도록, 한 번 찍힌 뒤엔
 // 이만큼 지나야 다음 스캔(=다음 스냅샷 기회)이 시작됨.
 const CAPTURE_COOLDOWN_MS = 2500;
@@ -727,6 +727,15 @@ function InspectionSessionDetail({ sessionId, items, onBack, onDelete }) {
     if (items.length === 0) onBack();
   }, [items.length]);
 
+  // 저장돼있는 원본 캡처 이미지 그대로(바운딩박스 없이) 다운로드
+  const handleDownloadRaw = () => {
+    if (!baseRecord?.image_data_uri) return;
+    const a = document.createElement("a");
+    a.href = baseRecord.image_data_uri;
+    a.download = `${baseRecord.id}_원본.jpg`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  };
+
   // 화면에 보이는 그대로(사진 + 바운딩박스 오버레이 + 배지)를 캡처해서 이미지 파일로 다운로드
   const handleDownloadImage = async () => {
     if (!frameRef.current) return;
@@ -736,7 +745,7 @@ function InspectionSessionDetail({ sessionId, items, onBack, onDelete }) {
       const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
       const a = document.createElement("a");
       a.href = dataUrl;
-      a.download = `${baseRecord.id}.jpg`;
+      a.download = `${baseRecord.id}_박스포함.jpg`;
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
     } finally {
       setDownloading(false);
@@ -796,14 +805,23 @@ function InspectionSessionDetail({ sessionId, items, onBack, onDelete }) {
                 <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 20, fontWeight: 600 }}>{baseRecord.processing_time_ms}<span style={{ fontSize: 12, color: TOKENS.inkSoft }}> ms</span></div>
               </div>
             </div>
-            <button onClick={handleDownloadImage} disabled={downloading} style={{
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 6, width: "100%",
-              marginTop: 12, padding: "9px 0", borderRadius: 6, border: `1px solid ${TOKENS.line}`,
-              background: TOKENS.panel, color: TOKENS.ink, fontSize: 12.5, fontWeight: 600,
-              cursor: downloading ? "default" : "pointer", opacity: downloading ? 0.6 : 1,
-            }}>
-              <Download size={14} /> {downloading ? "다운로드 중..." : "이미지 다운로드"}
-            </button>
+            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+              <button onClick={handleDownloadRaw} style={{
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 6, flex: 1,
+                padding: "9px 0", borderRadius: 6, border: `1px solid ${TOKENS.line}`,
+                background: TOKENS.panel, color: TOKENS.ink, fontSize: 12.5, fontWeight: 600, cursor: "pointer",
+              }}>
+                <Download size={14} /> 원본 이미지
+              </button>
+              <button onClick={handleDownloadImage} disabled={downloading} style={{
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 6, flex: 1,
+                padding: "9px 0", borderRadius: 6, border: `1px solid ${TOKENS.line}`,
+                background: TOKENS.panel, color: TOKENS.ink, fontSize: 12.5, fontWeight: 600,
+                cursor: downloading ? "default" : "pointer", opacity: downloading ? 0.6 : 1,
+              }}>
+                <Download size={14} /> {downloading ? "다운로드 중..." : "박스 포함 이미지"}
+              </button>
+            </div>
           </div>
 
           {/* right: AI 판정 상세 */}
