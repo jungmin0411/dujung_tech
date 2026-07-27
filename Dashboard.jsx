@@ -1829,15 +1829,6 @@ function WeldLoopTab() {
             마지막 배포가 다시 첫 단계로 이어지면서, 검수할수록 데이터가 쌓이고 모델이 좋아지는 선순환 고리를 이룹니다.
           </p>
 
-          <div style={{ display: "flex", gap: 22, marginTop: 20 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12.5, color: TOKENS.inkSoft }}>
-              <span style={{ width: 12, height: 12, borderRadius: 3, background: TOKENS.good, display: "inline-block" }} /> 사용자
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12.5, color: TOKENS.inkSoft }}>
-              <span style={{ width: 12, height: 12, borderRadius: 3, background: TOKENS.weld, display: "inline-block" }} /> WeldLoop
-            </div>
-          </div>
-
           <a href="https://weldloop-frontend.vercel.app/" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
             <button style={{
               display: "flex", alignItems: "center", gap: 8, padding: "12px 22px", borderRadius: 6, border: "none",
@@ -1849,7 +1840,17 @@ function WeldLoopTab() {
           </a>
         </div>
 
-        <WeldLoopDiagram />
+        <div>
+          <WeldLoopDiagram />
+          <div style={{ display: "flex", justifyContent: "center", gap: 22, marginTop: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12.5, color: TOKENS.inkSoft }}>
+              <span style={{ width: 12, height: 12, borderRadius: 3, background: TOKENS.good, display: "inline-block" }} /> 사용자
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12.5, color: TOKENS.inkSoft }}>
+              <span style={{ width: 12, height: 12, borderRadius: 3, background: TOKENS.weld, display: "inline-block" }} /> WeldLoop
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
