@@ -1773,14 +1773,14 @@ const WELDLOOP_STEPS = [
 const WELDLOOP_ARROWS = [
   "M 276.6,106.7 Q 333.6,111.2 355.4,164.3",
   "M 382.4,220.6 Q 391.5,289.3 343.6,339.4",
-  "M 258,369 Q 240,445 222,369",
+  "M 385,385 Q 230,495 95,385",
   "M 136.4,339.4 Q 88.5,289.3 97.6,220.6",
   "M 124.6,164.3 Q 146.4,111.2 203.4,106.7",
 ];
 
 function WeldLoopDiagram() {
   return (
-    <svg viewBox="0 0 480 480" style={{ width: "100%", maxWidth: 460, display: "block", margin: "0 auto" }}>
+    <svg viewBox="0 0 480 520" style={{ width: "100%", maxWidth: 460, display: "block", margin: "0 auto" }}>
       <defs>
         <marker id="weldloop-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="10" markerHeight="10" orient="auto-start-reverse">
           <path d="M 0 0 L 10 5 L 0 10 z" fill={TOKENS.inkSoft} />
