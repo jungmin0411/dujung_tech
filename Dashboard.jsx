@@ -7,7 +7,7 @@ import {
   LayoutGrid, ScanSearch, FileDown, ChevronRight, Check, X,
   Clock, Gauge, Download, CalendarDays, FolderUp, Image as ImageIcon,
   Loader2, FolderCheck, Trash2, Sun, Moon, Bell, Maximize, Minimize,
-  Activity, AlertTriangle, Package, Timer,
+  Activity, AlertTriangle, Package, Timer, RefreshCw, ExternalLink,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { jsPDF } from "jspdf";
@@ -38,6 +38,8 @@ const LIGHT_TOKENS = {
   goodSoft: "#E4EDE5",
   bad: "#A23B2E",
   badSoft: "#F5E3E0",
+  weld: "#5B57D6",
+  weldSoft: "#EAE9FA",
 };
 
 const DARK_TOKENS = {
@@ -53,6 +55,8 @@ const DARK_TOKENS = {
   goodSoft: "rgba(95,219,140,0.12)",
   bad: "#E38A7A",
   badSoft: "rgba(227,138,122,0.14)",
+  weld: "#9D97FF",
+  weldSoft: "rgba(157,151,255,0.14)",
 };
 
 const TOKENS = { ...LIGHT_TOKENS };
@@ -1754,6 +1758,99 @@ function UploadTab({ videoElRef, dockRef, camConnected, connectCamera, disconnec
   );
 }
 
+/* ---------------------------------- WeldLoop tab (팀원 프로젝트 소개) ---------------------------------- */
+
+// 5단계를 원형으로 배치한 좌표 — 중심(240,240), 반지름 160, 맨 위(이미지 추론)부터 시계방향 72°씩
+const WELDLOOP_STEPS = [
+  { key: "infer", label: "이미지 추론", who: "user", x: 240, y: 80 },
+  { key: "review", label: "라벨 검수·수정", who: "user", x: 392, y: 191 },
+  { key: "accumulate", label: "데이터 축적", who: "weldloop", x: 334, y: 369 },
+  { key: "retrain", label: "모델 재학습", who: "weldloop", x: 146, y: 369 },
+  { key: "deploy", label: "개선 모델 배포", who: "weldloop", x: 88, y: 191 },
+];
+
+// 각 단계 사이를 잇는, 원 바깥쪽으로 살짝 부푼 시계방향 화살표 곡선(2차 베지어) — 좌표는 위 5개 점 기준으로 미리 계산해둔 값
+const WELDLOOP_ARROWS = [
+  "M 276.6,106.7 Q 333.6,111.2 355.4,164.3",
+  "M 382.4,220.6 Q 391.5,289.3 343.6,339.4",
+  "M 252,369 Q 240,399 228,369",
+  "M 136.4,339.4 Q 88.5,289.3 97.6,220.6",
+  "M 124.6,164.3 Q 146.4,111.2 203.4,106.7",
+];
+
+function WeldLoopDiagram() {
+  return (
+    <svg viewBox="0 0 480 480" style={{ width: "100%", maxWidth: 460, display: "block", margin: "0 auto" }}>
+      <defs>
+        <marker id="weldloop-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill={TOKENS.inkSoft} />
+        </marker>
+      </defs>
+      {WELDLOOP_ARROWS.map((d, i) => (
+        <path key={i} d={d} fill="none" stroke={TOKENS.inkSoft} strokeWidth="1.5" opacity="0.8" markerEnd="url(#weldloop-arrow)" />
+      ))}
+      <circle cx="240" cy="240" r="72" fill={TOKENS.panel} stroke={TOKENS.line} />
+      <text x="240" y="234" textAnchor="middle" fontFamily="'Oswald', sans-serif" fontWeight="700" fontSize="17" fill={TOKENS.ink}>WeldLoop</text>
+      <text x="240" y="254" textAnchor="middle" fontFamily="'Inter', sans-serif" fontSize="11.5" fill={TOKENS.inkSoft}>순환 구조</text>
+      {WELDLOOP_STEPS.map(s => {
+        const color = s.who === "user" ? TOKENS.good : TOKENS.weld;
+        const soft = s.who === "user" ? TOKENS.goodSoft : TOKENS.weldSoft;
+        return (
+          <g key={s.key} transform={`translate(${s.x}, ${s.y})`}>
+            <rect x="-78" y="-22" width="156" height="44" rx="8" fill={soft} stroke={color} strokeWidth="1" />
+            <text x="0" y="5" textAnchor="middle" fontFamily="'Inter', sans-serif" fontWeight="600" fontSize="13" fill={color}>{s.label}</text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+function WeldLoopTab() {
+  return (
+    <div>
+      <SectionTitle>WeldLoop</SectionTitle>
+
+      <div style={{ background: TOKENS.panel, border: `1px solid ${TOKENS.line}`, borderRadius: 8, padding: 22, marginBottom: 16 }}>
+        <Eyebrow>소개</Eyebrow>
+        <p style={{ fontSize: 14, lineHeight: 1.75, color: TOKENS.ink, margin: "8px 0 0", maxWidth: 720 }}>
+          WeldLoop는 용접 이미지의 라벨링 결과를 다시 모델 학습에 활용하는 순환형 오토라벨링 시스템입니다. 흐름은 시계 방향으로 다섯 단계를 돕니다.
+        </p>
+        <p style={{ fontSize: 14, lineHeight: 1.75, color: TOKENS.ink, margin: "12px 0 0", maxWidth: 720 }}>
+          사용자가 용접 이미지에 AI 모델을 적용해 바운딩 박스와 라벨을 만들고(이미지 추론), 그 결과를 직접 검토·수정합니다(라벨 검수·수정). 이렇게 검수된 데이터가 쌓이면(데이터 축적) 이를 활용해 모델을 다시 학습시키고(모델 재학습), 개선된 모델을 사용자에게 다시 제공합니다(개선 모델 배포).
+        </p>
+        <p style={{ fontSize: 14, lineHeight: 1.75, color: TOKENS.ink, margin: "12px 0 0", maxWidth: 720 }}>
+          마지막 배포가 다시 첫 단계로 이어지면서, 검수할수록 데이터가 쌓이고 모델이 좋아지는 선순환 고리를 이룹니다.
+        </p>
+      </div>
+
+      <div style={{ background: TOKENS.panel, border: `1px solid ${TOKENS.line}`, borderRadius: 8, padding: 28 }}>
+        <WeldLoopDiagram />
+        <div style={{ display: "flex", justifyContent: "center", gap: 22, marginTop: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12.5, color: TOKENS.inkSoft }}>
+            <span style={{ width: 12, height: 12, borderRadius: 3, background: TOKENS.good, display: "inline-block" }} /> 사용자
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12.5, color: TOKENS.inkSoft }}>
+            <span style={{ width: 12, height: 12, borderRadius: 3, background: TOKENS.weld, display: "inline-block" }} /> WeldLoop
+          </div>
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "center", marginTop: 24 }}>
+          <a href="https://weldloop-frontend.vercel.app/" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+            <button style={{
+              display: "flex", alignItems: "center", gap: 8, padding: "12px 22px", borderRadius: 6, border: "none",
+              background: TOKENS.ink, color: TOKENS.bg, fontFamily: "'Oswald', sans-serif", fontWeight: 600,
+              fontSize: 13.5, letterSpacing: "0.04em", textTransform: "uppercase", cursor: "pointer",
+            }}>
+              WeldLoop 바로가기 <ExternalLink size={15} />
+            </button>
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ---------------------------------- App shell ---------------------------------- */
 
 const NAV = [
@@ -1761,6 +1858,7 @@ const NAV = [
   { key: "run", label: "검사 실행", icon: FolderUp },
   { key: "inspection", label: "검사 상세", icon: ScanSearch },
   { key: "reports", label: "리포트", icon: FileDown },
+  { key: "weldloop", label: "WeldLoop", icon: RefreshCw },
 ];
 
 function LoginPage({ onLogin }) {
@@ -2203,6 +2301,7 @@ export default function InspectionDashboard() {
         )}
         {tab === "inspection" && <InspectionTab data={rangeData} onDelete={deleteInspection} />}
         {tab === "reports" && <ReportsTab date={date} setDate={setDate} data={data} />}
+        {tab === "weldloop" && <WeldLoopTab />}
       </main>
 
       {/* 캡처용 캔버스 — App 루트에 항상 마운트돼 있어서 탭을 넘나들어도 자동분류 루프가 안 끊김 */}
