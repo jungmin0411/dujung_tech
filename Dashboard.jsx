@@ -82,10 +82,10 @@ const DEFECT_TYPES = ["균열", "기공", "언더컷", "융합불량", "용입�
 
 // AI 추론 전용 서버 (DujungTech/backend/server.py) — good/bad 판정과 박스만 담당.
 // 모델/GPU가 있는 곳(VDI 등)에서 돌아가므로 데이터 서버와 주소가 다를 수 있다.
-// 불량 세부유형(DEFECT_TYPES)은 이 모델이 구분하지 못해 여전히 임의값으로 표시한다.
+// 불량 세부유형(DEFECT_TYPES)은 백엔드의 별도 CNN(defect_cnn.py)이 판정 — 아직 미학습 상태라 참고용.
 const AI_API = "https://crowd-blair-slim-track.trycloudflare.com";
 // 검사 기록 저장/조회/삭제 전용 서버 (DujungTech/backend/data_server.py) — Postgres만 다룸.
-const DATA_API = "https://rico-arts-reported-sku.trycloudflare.com";
+const DATA_API = "https://routing-professionals-miniature-indirect.trycloudflare.com";
 // 같은 부품을 계속 비추고 있어도 스냅샷이 연속으로 찍히지 않도록, 한 번 찍힌 뒤엔
 // 이만큼 지나야 다음 스캔(=다음 스냅샷 기회)이 시작됨.
 const CAPTURE_COOLDOWN_MS = 2500;
@@ -2141,7 +2141,7 @@ export default function InspectionDashboard() {
     setLastMs(processing_time_ms);
     // 같은 날짜에 자동 분류를 몇 번을 시작/중지하든 검사 상세엔 그 날짜 폴더 하나로 계속 이어서 쌓임
     const session_id = localDateStr(now);
-    // 불량 세부유형은 이 모델이 구분하지 못해 여전히 임의값(연출용) — 판정 자체(good/bad)만 실제 결과
+    // 결함 세부유형은 이제 백엔드 CNN이 실제로 판정한 값을 그대로 씀 (아직 미학습 상태라 참고용)
     let seed = Date.now() % 100000;
     const rand = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
     const record = {
@@ -2149,7 +2149,7 @@ export default function InspectionDashboard() {
       session_id,
       part: parts[Math.floor(rand() * parts.length)],
       ai_judgment: result.judgment,
-      defect_type: isBad ? DEFECT_TYPES[Math.floor(rand() * DEFECT_TYPES.length)] : null,
+      defect_type: isBad ? (result.defect_type || null) : null,
       confidence: primaryBox.conf,
       processing_time_ms,
       timestamp: localDateTimeStr(now),
