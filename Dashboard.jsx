@@ -85,7 +85,7 @@ const DEFECT_TYPES = ["균열", "기공", "언더컷", "융합불량", "용입�
 // 불량 세부유형(DEFECT_TYPES)은 이 모델이 구분하지 못해 여전히 임의값으로 표시한다.
 const AI_API = "https://crowd-blair-slim-track.trycloudflare.com";
 // 검사 기록 저장/조회/삭제 전용 서버 (DujungTech/backend/data_server.py) — Postgres만 다룸.
-const DATA_API = "https://requested-carry-jungle-justify.trycloudflare.com";
+const DATA_API = "https://useful-writer-imaging-designers.trycloudflare.com";
 // 같은 부품을 계속 비추고 있어도 스냅샷이 연속으로 찍히지 않도록, 한 번 찍힌 뒤엔
 // 이만큼 지나야 다음 스캔(=다음 스냅샷 기회)이 시작됨.
 const CAPTURE_COOLDOWN_MS = 2500;
@@ -1811,41 +1811,43 @@ function WeldLoopTab() {
     <div>
       <SectionTitle>WeldLoop</SectionTitle>
 
-      <div style={{ background: TOKENS.panel, border: `1px solid ${TOKENS.line}`, borderRadius: 8, padding: 22, marginBottom: 16 }}>
-        <Eyebrow>소개</Eyebrow>
-        <p style={{ fontSize: 14, lineHeight: 1.75, color: TOKENS.ink, margin: "8px 0 0", maxWidth: 720 }}>
-          WeldLoop는 용접 이미지의 라벨링 결과를 다시 모델 학습에 활용하는 순환형 오토라벨링 시스템입니다. 흐름은 시계 방향으로 다섯 단계를 돕니다.
-        </p>
-        <p style={{ fontSize: 14, lineHeight: 1.75, color: TOKENS.ink, margin: "12px 0 0", maxWidth: 720 }}>
-          사용자가 용접 이미지에 AI 모델을 적용해 바운딩 박스와 라벨을 만들고(이미지 추론), 그 결과를 직접 검토·수정합니다(라벨 검수·수정). 이렇게 검수된 데이터가 쌓이면(데이터 축적) 이를 활용해 모델을 다시 학습시키고(모델 재학습), 개선된 모델을 사용자에게 다시 제공합니다(개선 모델 배포).
-        </p>
-        <p style={{ fontSize: 14, lineHeight: 1.75, color: TOKENS.ink, margin: "12px 0 0", maxWidth: 720 }}>
-          마지막 배포가 다시 첫 단계로 이어지면서, 검수할수록 데이터가 쌓이고 모델이 좋아지는 선순환 고리를 이룹니다.
-        </p>
-      </div>
+      <div style={{
+        background: TOKENS.panel, border: `1px solid ${TOKENS.line}`, borderRadius: 8, padding: 28,
+        display: "grid", gridTemplateColumns: "1fr 420px", gap: 32, alignItems: "center",
+      }}>
+        <div>
+          <Eyebrow>소개</Eyebrow>
+          <p style={{ fontSize: 14, lineHeight: 1.75, color: TOKENS.ink, margin: "8px 0 0" }}>
+            WeldLoop는 용접 이미지의 라벨링 결과를 다시 모델 학습에 활용하는 순환형 오토라벨링 시스템입니다. 흐름은 시계 방향으로 다섯 단계를 돕니다.
+          </p>
+          <p style={{ fontSize: 14, lineHeight: 1.75, color: TOKENS.ink, margin: "12px 0 0" }}>
+            사용자가 용접 이미지에 AI 모델을 적용해 바운딩 박스와 라벨을 만들고(이미지 추론), 그 결과를 직접 검토·수정합니다(라벨 검수·수정). 이렇게 검수된 데이터가 쌓이면(데이터 축적) 이를 활용해 모델을 다시 학습시키고(모델 재학습), 개선된 모델을 사용자에게 다시 제공합니다(개선 모델 배포).
+          </p>
+          <p style={{ fontSize: 14, lineHeight: 1.75, color: TOKENS.ink, margin: "12px 0 0" }}>
+            마지막 배포가 다시 첫 단계로 이어지면서, 검수할수록 데이터가 쌓이고 모델이 좋아지는 선순환 고리를 이룹니다.
+          </p>
 
-      <div style={{ background: TOKENS.panel, border: `1px solid ${TOKENS.line}`, borderRadius: 8, padding: 28 }}>
-        <WeldLoopDiagram />
-        <div style={{ display: "flex", justifyContent: "center", gap: 22, marginTop: 8 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12.5, color: TOKENS.inkSoft }}>
-            <span style={{ width: 12, height: 12, borderRadius: 3, background: TOKENS.good, display: "inline-block" }} /> 사용자
+          <div style={{ display: "flex", gap: 22, marginTop: 20 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12.5, color: TOKENS.inkSoft }}>
+              <span style={{ width: 12, height: 12, borderRadius: 3, background: TOKENS.good, display: "inline-block" }} /> 사용자
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12.5, color: TOKENS.inkSoft }}>
+              <span style={{ width: 12, height: 12, borderRadius: 3, background: TOKENS.weld, display: "inline-block" }} /> WeldLoop
+            </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12.5, color: TOKENS.inkSoft }}>
-            <span style={{ width: 12, height: 12, borderRadius: 3, background: TOKENS.weld, display: "inline-block" }} /> WeldLoop
-          </div>
-        </div>
 
-        <div style={{ display: "flex", justifyContent: "center", marginTop: 24 }}>
           <a href="https://weldloop-frontend.vercel.app/" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
             <button style={{
               display: "flex", alignItems: "center", gap: 8, padding: "12px 22px", borderRadius: 6, border: "none",
               background: TOKENS.ink, color: TOKENS.bg, fontFamily: "'Oswald', sans-serif", fontWeight: 600,
-              fontSize: 13.5, letterSpacing: "0.04em", textTransform: "uppercase", cursor: "pointer",
+              fontSize: 13.5, letterSpacing: "0.04em", textTransform: "uppercase", cursor: "pointer", marginTop: 24,
             }}>
               WeldLoop 바로가기 <ExternalLink size={15} />
             </button>
           </a>
         </div>
+
+        <WeldLoopDiagram />
       </div>
     </div>
   );
