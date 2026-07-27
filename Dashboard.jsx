@@ -1771,16 +1771,16 @@ const WELDLOOP_STEPS = [
 
 // 각 단계 사이를 잇는, 원 바깥쪽으로 살짝 부푼 시계방향 화살표 곡선(2차 베지어) — 좌표는 위 5개 점 기준으로 미리 계산해둔 값
 const WELDLOOP_ARROWS = [
-  "M 276.6,106.7 Q 333.6,111.2 355.4,164.3",
-  "M 382.4,220.6 Q 391.5,289.3 343.6,339.4",
-  "M 385,385 Q 230,495 95,385",
-  "M 136.4,339.4 Q 88.5,289.3 97.6,220.6",
-  "M 124.6,164.3 Q 146.4,111.2 203.4,106.7",
+  "M 274.9,105.6 Q 333.6,111.2 357.1,165.4",
+  "M 383.0,218.7 Q 391.5,289.3 343.0,341.3",
+  "M 262,369 Q 240,400 218,369",
+  "M 137.0,341.3 Q 88.5,289.3 97.0,218.7",
+  "M 122.9,165.4 Q 146.4,111.2 205.1,105.6",
 ];
 
 function WeldLoopDiagram() {
   return (
-    <svg viewBox="0 0 480 520" style={{ width: "100%", maxWidth: 460, display: "block", margin: "0 auto" }}>
+    <svg viewBox="0 0 480 480" style={{ width: "100%", maxWidth: 460, display: "block", margin: "0 auto" }}>
       <defs>
         <marker id="weldloop-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="10" markerHeight="10" orient="auto-start-reverse">
           <path d="M 0 0 L 10 5 L 0 10 z" fill={TOKENS.inkSoft} />
@@ -1797,7 +1797,7 @@ function WeldLoopDiagram() {
         const soft = s.who === "user" ? TOKENS.goodSoft : TOKENS.weldSoft;
         return (
           <g key={s.key} transform={`translate(${s.x}, ${s.y})`}>
-            <rect x="-78" y="-22" width="156" height="44" rx="8" fill={soft} stroke={color} strokeWidth="1" />
+            <rect x="-66" y="-22" width="132" height="44" rx="8" fill={soft} stroke={color} strokeWidth="1" />
             <text x="0" y="5" textAnchor="middle" fontFamily="'Inter', sans-serif" fontWeight="600" fontSize="13" fill={color}>{s.label}</text>
           </g>
         );
