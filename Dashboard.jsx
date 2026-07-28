@@ -85,7 +85,7 @@ const DEFECT_TYPES = ["균열", "기공", "언더컷", "융합불량", "용입�
 // 불량 세부유형(DEFECT_TYPES)은 백엔드의 별도 CNN(defect_cnn.py)이 판정 — 아직 미학습 상태라 참고용.
 const AI_API = "https://crowd-blair-slim-track.trycloudflare.com";
 // 검사 기록 저장/조회/삭제 전용 서버 (DujungTech/backend/data_server.py) — Postgres만 다룸.
-const DATA_API = "https://routing-professionals-miniature-indirect.trycloudflare.com";
+const DATA_API = "https://invited-witness-villa-hygiene.trycloudflare.com";
 // 같은 부품을 계속 비추고 있어도 스냅샷이 연속으로 찍히지 않도록, 한 번 찍힌 뒤엔
 // 이만큼 지나야 다음 스캔(=다음 스냅샷 기회)이 시작됨.
 const CAPTURE_COOLDOWN_MS = 2500;
