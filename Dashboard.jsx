@@ -1835,7 +1835,7 @@ function WeldLoopTab() {
             마지막 배포가 다시 첫 단계로 이어지면서, 검수할수록 데이터가 쌓이고 모델이 좋아지는 선순환 고리를 이룹니다.
           </p>
 
-          <a href="https://weldloop-frontend.vercel.app/" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+          <a href="https://bustartup.kr:30001/" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
             <button style={{
               display: "flex", alignItems: "center", gap: 8, padding: "12px 22px", borderRadius: 6, border: "none",
               background: TOKENS.ink, color: TOKENS.bg, fontFamily: "'Oswald', sans-serif", fontWeight: 600,
