@@ -90,15 +90,6 @@ const DATA_API = "https://dujung-tech.onrender.com";
 // 이만큼 지나야 다음 스캔(=다음 스냅샷 기회)이 시작됨.
 const CAPTURE_COOLDOWN_MS = 2500;
 
-// 모델은 하나(학습된 단일 모델)이고, 아래는 그 모델이 다루는 부품 클래스를 선택적으로
-// 필터링해서 보고 싶을 때 쓰는 옵션. "해당사항 없음"을 고르면 필터 없이 전체 클래스로 그대로 돌아감.
-const MODEL_GROUPS = [
-  { key: "none", label: "해당사항 없음", parts: PART_TYPES },
-  { key: "plate", label: "철판", parts: ["철판"] },
-  { key: "beam_angle", label: "H빔 · ㄱ자형강", parts: ["H빔", "ㄱ자형강"] },
-  { key: "pipe", label: "파이프", parts: ["파이프"] },
-];
-
 // 백엔드(Postgres에 저장된 실제 검사 기록)에서 날짜 범위로 가져옴 — 실패하면 빈 배열로 조용히 넘어감
 async function fetchInspections(startStr, endStr) {
   try {
@@ -1304,33 +1295,6 @@ function mockRunInspection(fileMeta, index) {
   };
 }
 
-function ModelSelector({ selectedKey, setSelectedKey }) {
-  return (
-    <div style={{ background: TOKENS.panel, border: `1px solid ${TOKENS.line}`, borderRadius: 8, padding: 18, backdropFilter: "blur(14px)" }}>
-      <Eyebrow>선택 사항</Eyebrow>
-      <div style={{ fontSize: 11, color: TOKENS.inkSoft, marginTop: 4, marginBottom: 4 }}>
-        검사 예정 부품군에 맞춰 결과를 더 정확하게 검사할 수 있습니다. (해당사항 없을 시 "해당사항 없음")
-      </div>
-      <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-        {MODEL_GROUPS.map(m => {
-          const active = selectedKey === m.key;
-          return (
-            <button key={m.key} onClick={() => setSelectedKey(m.key)} style={{
-              flex: 1, padding: "10px 8px", borderRadius: 6, cursor: "pointer",
-              border: `1.5px solid ${active ? TOKENS.amber : TOKENS.line}`,
-              background: active ? TOKENS.amberSoft : "transparent",
-              color: active ? TOKENS.amberDeep : TOKENS.ink,
-              fontSize: 12.5, fontWeight: active ? 600 : 500,
-            }}>
-              {m.label}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
 // 노트북/PC인지 모바일인지 판별 — 모바일이면 후면(환경) 카메라, 아니면 내장 웹캠을 우선 사용
 function isMobileDevice() {
   if (typeof navigator === "undefined") return false;
@@ -1647,7 +1611,7 @@ function FloatingCameraPlayer({ tab, connected, videoElRef, dockRef, streamRef, 
   return playerNode;
 }
 
-function UploadTab({ videoElRef, dockRef, camConnected, connectCamera, disconnectCamera, camError, modelKey, setModelKey, canvasRef, autoRunning, captureCount, lastThumb, lastMs, startAuto, stopAuto, captureAndClassify }) {
+function UploadTab({ videoElRef, dockRef, camConnected, connectCamera, disconnectCamera, camError, canvasRef, autoRunning, captureCount, lastThumb, lastMs, startAuto, stopAuto, captureAndClassify }) {
   const [files, setFiles] = useState([]);       // [{file, path}]
   const [results, setResults] = useState(null); // null = not run yet
   const [running, setRunning] = useState(false);
@@ -1692,8 +1656,6 @@ function UploadTab({ videoElRef, dockRef, camConnected, connectCamera, disconnec
   return (
     <div>
       <SectionTitle>검사 실행</SectionTitle>
-
-      <ModelSelector selectedKey={modelKey} setSelectedKey={setModelKey} />
 
       <div style={{ marginTop: 16 }}>
         <CameraCapture
@@ -2020,7 +1982,6 @@ export default function InspectionDashboard() {
   const dockRef = useRef(null);
   const streamRef = useRef(null);
   const [camConnected, setCamConnected] = useState(false);
-  const [modelKey, setModelKey] = useState(MODEL_GROUPS[0].key);
   const [lastJudgment, setLastJudgment] = useState(null); // "good" | "bad" | null
   const [liveBox, setLiveBox] = useState(null); // 지금 프레임에서 실시간으로 탐지된 박스(정규화 좌표) — 카메라 화면 오버레이용
   const [camError, setCamError] = useState(null);
@@ -2036,7 +1997,6 @@ export default function InspectionDashboard() {
   const [captureCount, setCaptureCount] = useState(0);
   const [lastThumb, setLastThumb] = useState(null);
   const [lastMs, setLastMs] = useState(null);
-  const modelGroup = MODEL_GROUPS.find(m => m.key === modelKey);
 
   // 한두 프레임만 놓쳐도 화면의 실시간 박스가 바로 깜빡 꺼지지 않도록, 약간의 유예를 두고 지움.
   // 이미 예약돼 있으면 다시 미루지 않는다 — 계속 놓치는 동안 매번 리셋되면 영원히 안 지워지기 때문.
@@ -2124,7 +2084,7 @@ export default function InspectionDashboard() {
     }
     lastLoggedAtRef.current = nowMs;
 
-    const parts = modelGroup?.parts || PART_TYPES;
+    const parts = PART_TYPES;
     const now = new Date();
     const processing_time_ms = result.processing_time_ms;
 
@@ -2343,7 +2303,6 @@ export default function InspectionDashboard() {
           <UploadTab
             videoElRef={videoElRef} dockRef={dockRef}
             camConnected={camConnected} connectCamera={connectCamera} disconnectCamera={disconnectCamera} camError={camError}
-            modelKey={modelKey} setModelKey={setModelKey}
             canvasRef={canvasRef} autoRunning={autoRunning} captureCount={captureCount} lastThumb={lastThumb} lastMs={lastMs}
             startAuto={startAuto} stopAuto={stopAuto} captureAndClassify={captureAndClassify}
           />
