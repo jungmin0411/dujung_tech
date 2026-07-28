@@ -2074,12 +2074,11 @@ export default function InspectionDashboard() {
     setLiveBox({ x1: primaryBox.x1, y1: primaryBox.y1, x2: primaryBox.x2, y2: primaryBox.y2, cls: result.judgment });
     setLastJudgment(result.judgment);
 
-    // 스냅샷(검사 상세 기록)은 쿨다운이 지났을 때만 — 같은 부품을 계속 비추고 있어도 기록은 2.5초마다만 쌓임.
-    // 단, "지금 한 장 캡처" 수동 클릭(forceLog)과 bad 판정은 쿨다운과 무관하게 항상 기록됨 —
-    // bad를 쿨다운 중이라고 건너뛰면, 화면엔 잠깐 BAD가 떴다가 그 프레임이 저장 안 되고
-    // 그다음에 저장되는(우연히 good으로 바뀐) 프레임만 남는 사고가 날 수 있어서 안 된다.
+    // 스냅샷(검사 상세 기록)은 쿨다운이 지났을 때만 — 같은 부품을 계속 비추고 있으면 good이든
+    // bad든 기록은 2.5초마다만 쌓임(같은 불량품을 계속 찍어서 중복 저장되는 것 방지).
+    // 단, "지금 한 장 캡처" 수동 클릭(forceLog)은 쿨다운과 무관하게 항상 기록됨.
     const nowMs = Date.now();
-    if (!forceLog && !isBad && nowMs - lastLoggedAtRef.current < CAPTURE_COOLDOWN_MS) {
+    if (!forceLog && nowMs - lastLoggedAtRef.current < CAPTURE_COOLDOWN_MS) {
       return 60; // 계속 빠르게 스캔은 하되 이번 프레임은 기록하지 않음
     }
     lastLoggedAtRef.current = nowMs;
