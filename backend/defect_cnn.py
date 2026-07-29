@@ -20,7 +20,7 @@ CLASS_NAMES_EN = [
     "Overlap", "Undercut", "Crack", "Lack of Fusion",
 ]
 CLASS_NAMES_KR = [
-    "정상", "기공", "스패터", "화상(Burn-through)",
+    "정상", "기공", "스패터", "용락",
     "오버랩", "언더컷", "균열", "융합불량",
 ]
 INPUT_SIZE = 64

@@ -78,7 +78,7 @@ const LOGO_DATA_URI = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAiAAAAB4CAY
    processing_time_ms / timestamp
 ---------------------------------------------------------------------- */
 const PART_TYPES = ["파이프", "철판", "원형봉", "H빔", "ㄱ자형강"];
-const DEFECT_TYPES = ["균열", "기공", "언더컷", "융합불량", "화상(Burn-through)", "오버랩", "스패터"];
+const DEFECT_TYPES = ["균열", "기공", "언더컷", "융합불량", "용락", "오버랩", "스패터"];
 
 // AI 추론 전용 서버 (DujungTech/backend/server.py) — good/bad 판정과 박스만 담당.
 // 모델/GPU가 있는 곳(VDI 등)에서 돌아가므로 데이터 서버와 주소가 다를 수 있다.
