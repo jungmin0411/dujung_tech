@@ -21,7 +21,7 @@ from defect_cnn import load_model as load_defect_cnn, classify as cnn_classify
 PACKAGE_ROOT = Path(__file__).resolve().parent.parent / "weld_yolov10x_box010_e12_deploy"
 WEIGHTS = PACKAGE_ROOT / "model" / "weld_yolov10x_box010_e12.pt"
 DEFECT_CNN_WEIGHTS = Path(__file__).resolve().parent / "defect_cnn_weights.pt"
-CONF = 0.60
+CONF = 0.50
 IOU = 0.70
 IMGSZ = 640
 
