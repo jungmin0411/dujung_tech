@@ -35,8 +35,7 @@ app.add_middleware(
 )
 
 model = YOLO(str(WEIGHTS))
-# 결함 세부유형(균열/기공 등) 분류용 CNN — 지금은 미학습(랜덤 초기화) 상태.
-# 팀원이 학습 완료하면 defect_cnn_weights.pt만 같은 이름으로 교체하면 됨 (이 코드는 그대로).
+# 결함 세부유형(균열/기공 등) 분류용 CNN — 남우현님이 학습 완료한 실제 가중치(custom_cnn_8class_best.pt).
 defect_cnn = load_defect_cnn(str(DEFECT_CNN_WEIGHTS))
 
 
@@ -57,7 +56,7 @@ class PredictResponse(BaseModel):
     judgment: Optional[str]
     boxes: List[Box]
     processing_time_ms: int
-    defect_type: Optional[str] = None  # judgment가 "bad"일 때만 CNN이 채움 (미학습 상태라 지금은 참고용)
+    defect_type: Optional[str] = None  # judgment가 "bad"일 때만 CNN이 채움
 
 
 def decode_data_uri(data_uri: str) -> Image.Image:
@@ -94,12 +93,9 @@ def predict(req: PredictRequest) -> PredictResponse:
 
     defect_type = None
     if judgment == "bad":
-        # YOLO가 찾은 불량 부위 중 확신도가 가장 높은 박스를 잘라서 CNN에 넣음
-        bad_boxes = [b for b in boxes if b.cls == "bad"]
-        primary = max(bad_boxes, key=lambda b: b.conf)
-        w, h = img.size
-        crop = img.crop((primary.x1 * w, primary.y1 * h, primary.x2 * w, primary.y2 * h))
-        defect_type = predict_defect_type(defect_cnn, crop)
+        # 팀원 지침: YOLO와 CNN은 같은 입력 이미지를 병렬로 받는 구조 — YOLO 박스로
+        # 재crop하지 않고 원본 프레임을 그대로 CNN에 넣는다.
+        defect_type = predict_defect_type(defect_cnn, img)
 
     return PredictResponse(judgment=judgment, boxes=boxes, processing_time_ms=elapsed_ms, defect_type=defect_type)
 

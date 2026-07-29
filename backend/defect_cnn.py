@@ -1,36 +1,62 @@
-"""용접 불량 세부유형(균열/기공/언더컷 등) 분류용 CNN.
+"""용접 불량 종류 분류용 CNN — 남우현님이 실제로 학습 완료한 커스텀 8-class CNN
+(2·3단계 파이프라인 중 3단계 담당, custom_cnn_8class_best.pt).
 
-팀원의 실제 학습 코드와 구조를 맞춰서 만듦 — torchvision ResNet18(ImageNet 사전학습)
-백본 + 마지막 FC만 7-클래스로 교체, 입력 224x224. 지금은 미학습(ImageNet 가중치 +
-랜덤 초기화된 FC) 상태 — 팀원이 학습 완료하면 defect_cnn_weights.pt만 같은 이름으로
-덮어쓰면 코드 수정 없이 바로 적용됨.
+아키텍처가 학습 시점과 100% 동일해야 state_dict를 그대로 불러올 수 있으므로
+레이어 구성/순서를 임의로 바꾸면 안 됨. 전처리(64x64 리사이즈 + ToTensor만, 정규화 없음)도
+학습 때와 동일하게 맞춰야 함 — cnn_how_to_use_manual.ipynb 기준.
 
-※ 클래스 순서 관련 중요 주의사항 ※
-팀원 쪽 학습 코드가 지금 `sorted(set(labels))`로 클래스를 "알파벳순 자동 정렬"하고 있어서,
-아래 DEFECT_CLASSES 순서는 팀원이 보고해준 라벨 문자열(Crack/Porosity/Undercut/
-Lack of Fusion/Lack of Penetration/Overlap/Spatter)의 알파벳순을 그대로 옮겨 적어둔 것.
-팀원이 라벨 문자열을 하나라도 바꾸거나 데이터셋 라벨 집합이 바뀌면 이 순서가 소리 없이
-달라질 수 있음 — 팀원 쪽에서 고정 리스트(하드코딩)로 바꾸는 게 안전함. 그 전까지는
-학습 완료 시점에 팀원한테 최종 클래스 순서를 다시 한번 확인받아야 함.
+※ 팀원 지침(중요): YOLO와 CNN은 같은 입력 이미지를 "병렬"로 받는 구조.
+YOLO가 찾은 박스로 재crop해서 CNN에 넣으면 안 됨 — 각자 독립적으로 원본(크롭 안 된) 이미지를
+그대로 입력받는다.
 """
-import numpy as np
 import torch
 import torch.nn as nn
 from PIL import Image
-from torchvision import models
+from torchvision import transforms
 
-# 알파벳순(영문 라벨 기준) 정렬 결과를 그대로 옮긴 것 — 팀원 라벨 문자열이 바뀌면 같이 바뀌어야 함
-DEFECT_CLASSES = ["균열", "융합불량", "용입부족", "오버랩", "기공", "스패터", "언더컷"]
-# Crack        Lack of Fusion  Lack of Penetration  Overlap  Porosity  Spatter  Undercut
-INPUT_SIZE = 224
-IMAGENET_MEAN = [0.485, 0.456, 0.406]
-IMAGENET_STD = [0.229, 0.224, 0.225]
+# 고정 순서 (학습 시점 그대로) — 절대 순서를 바꾸면 안 됨
+CLASS_NAMES_EN = [
+    "Good Weld", "Porosity", "Spatter", "Burn-through",
+    "Overlap", "Undercut", "Crack", "Lack of Fusion",
+]
+CLASS_NAMES_KR = [
+    "정상", "기공", "스패터", "화상(Burn-through)",
+    "오버랩", "언더컷", "균열", "융합불량",
+]
+INPUT_SIZE = 64
+
+_transform = transforms.Compose([
+    transforms.Resize((INPUT_SIZE, INPUT_SIZE)),
+    transforms.ToTensor(),
+])
 
 
-def build_model(num_classes: int = len(DEFECT_CLASSES)) -> nn.Module:
-    model = models.resnet18(weights="IMAGENET1K_V1")
-    model.fc = nn.Linear(model.fc.in_features, num_classes)
-    return model
+class SimpleWeldCNN(nn.Module):
+    def __init__(self, num_classes: int = len(CLASS_NAMES_EN)):
+        super().__init__()
+        self.conv1 = nn.Conv2d(3, 8, kernel_size=3, padding=1)
+        self.conv2 = nn.Conv2d(8, 16, kernel_size=3, padding=1)
+        self.conv3 = nn.Conv2d(16, 32, kernel_size=3, padding=1)
+        self.pool = nn.MaxPool2d(2)
+        self.relu = nn.ReLU()
+        self.flatten = nn.Flatten()
+        self.fc1 = nn.Linear(32 * 8 * 8, 64)
+        self.dropout = nn.Dropout(0.3)
+        self.fc2 = nn.Linear(64, num_classes)
+
+    def forward(self, x):
+        x = self.pool(self.relu(self.conv1(x)))
+        x = self.pool(self.relu(self.conv2(x)))
+        x = self.pool(self.relu(self.conv3(x)))
+        x = self.flatten(x)
+        x = self.relu(self.fc1(x))
+        x = self.dropout(x)
+        x = self.fc2(x)
+        return x
+
+
+def build_model(num_classes: int = len(CLASS_NAMES_EN)) -> nn.Module:
+    return SimpleWeldCNN(num_classes=num_classes)
 
 
 def load_model(weights_path: str, device: str = "cpu") -> nn.Module:
@@ -42,16 +68,15 @@ def load_model(weights_path: str, device: str = "cpu") -> nn.Module:
     return model
 
 
-def _preprocess(crop_img: Image.Image) -> torch.Tensor:
-    crop_img = crop_img.convert("RGB").resize((INPUT_SIZE, INPUT_SIZE))
-    arr = np.asarray(crop_img, dtype=np.float32) / 255.0
-    arr = (arr - np.array(IMAGENET_MEAN)) / np.array(IMAGENET_STD)
-    return torch.from_numpy(arr.astype(np.float32)).permute(2, 0, 1).unsqueeze(0)
-
-
-def predict_defect_type(model: nn.Module, crop_img: Image.Image) -> str:
-    tensor = _preprocess(crop_img)
+def predict_defect_type(model: nn.Module, image: Image.Image, exclude_good: bool = True) -> str:
+    """image는 YOLO 박스로 자른 crop이 아니라 원본 입력 이미지 그대로 넣는다 (팀원 지침).
+    exclude_good=True면 "정상" 클래스는 후보에서 제외하고 나머지 7개 불량 종류 중 최댓값을
+    고른다 — 이 함수는 YOLO가 이미 "bad"로 판정했을 때만 호출되기 때문."""
+    tensor = _transform(image.convert("RGB")).unsqueeze(0)
     with torch.no_grad():
         logits = model(tensor)
+        if exclude_good:
+            logits = logits.clone()
+            logits[0, 0] = float("-inf")
         idx = int(torch.argmax(logits, dim=1)[0])
-    return DEFECT_CLASSES[idx]
+    return CLASS_NAMES_KR[idx]
