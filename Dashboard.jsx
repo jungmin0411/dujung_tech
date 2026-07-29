@@ -83,7 +83,7 @@ const DEFECT_TYPES = ["균열", "기공", "언더컷", "융합불량", "용락",
 // AI 추론 전용 서버 (DujungTech/backend/server.py) — good/bad 판정과 박스만 담당.
 // 모델/GPU가 있는 곳(VDI 등)에서 돌아가므로 데이터 서버와 주소가 다를 수 있다.
 // 불량 세부유형(DEFECT_TYPES)은 백엔드의 별도 CNN(defect_cnn.py)이 판정 — 아직 미학습 상태라 참고용.
-const AI_API = "https://developments-strange-tolerance-bosnia.trycloudflare.com";
+const AI_API = "https://dried-technician-scene-lamb.trycloudflare.com";
 // 검사 기록 저장/조회/삭제 전용 서버 (DujungTech/backend/data_server.py) — Postgres만 다룸.
 const DATA_API = "https://dujung-tech.onrender.com";
 // 같은 부품을 계속 비추고 있어도 스냅샷이 연속으로 찍히지 않도록, 한 번 찍힌 뒤엔
@@ -1879,7 +1879,7 @@ function LoginPage({ onLogin }) {
 
   const tryLogin = () => {
     if (username !== "admin" || password !== "1234") {
-      setError("아이디 또는 비밀번호가 올바르지 않아");
+      setError("아이디 또는 비밀번호가 올바르지 않습니다");
       return;
     }
     setError(null);
