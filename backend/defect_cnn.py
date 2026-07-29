@@ -1,5 +1,8 @@
-"""용접 불량 종류 분류용 CNN — 남우현님이 실제로 학습 완료한 커스텀 8-class CNN
-(2·3단계 파이프라인 중 3단계 담당, custom_cnn_8class_best.pt).
+"""용접 양품/불량 판정 + 불량 종류 분류용 CNN — 남우현님이 실제로 학습 완료한 커스텀
+8-class CNN (2·3단계 파이프라인 중 3단계 담당, custom_cnn_8class_best.pt).
+
+클래스 0(정상)까지 포함해서 양품/불량 판정 자체를 이 CNN이 전담한다.
+YOLO는 용접부 위치(박스) 탐지 용도로만 쓰고, YOLO 자체의 good/bad 분류는 무시한다.
 
 아키텍처가 학습 시점과 100% 동일해야 state_dict를 그대로 불러올 수 있으므로
 레이어 구성/순서를 임의로 바꾸면 안 됨. 전처리(64x64 리사이즈 + ToTensor만, 정규화 없음)도
@@ -9,6 +12,8 @@
 YOLO가 찾은 박스로 재crop해서 CNN에 넣으면 안 됨 — 각자 독립적으로 원본(크롭 안 된) 이미지를
 그대로 입력받는다.
 """
+from typing import Optional
+
 import torch
 import torch.nn as nn
 from PIL import Image
@@ -68,15 +73,15 @@ def load_model(weights_path: str, device: str = "cpu") -> nn.Module:
     return model
 
 
-def predict_defect_type(model: nn.Module, image: Image.Image, exclude_good: bool = True) -> str:
+def classify(model: nn.Module, image: Image.Image) -> tuple[str, Optional[str]]:
     """image는 YOLO 박스로 자른 crop이 아니라 원본 입력 이미지 그대로 넣는다 (팀원 지침).
-    exclude_good=True면 "정상" 클래스는 후보에서 제외하고 나머지 7개 불량 종류 중 최댓값을
-    고른다 — 이 함수는 YOLO가 이미 "bad"로 판정했을 때만 호출되기 때문."""
+    양품/불량 판정 자체도 이 CNN이 전담한다 (YOLO는 위치 탐지 용도로만 사용).
+    반환값: (judgment, defect_type) — index 0(정상)이면 ("good", None),
+    나머지면 ("bad", 결함유형명)."""
     tensor = _transform(image.convert("RGB")).unsqueeze(0)
     with torch.no_grad():
         logits = model(tensor)
-        if exclude_good:
-            logits = logits.clone()
-            logits[0, 0] = float("-inf")
         idx = int(torch.argmax(logits, dim=1)[0])
-    return CLASS_NAMES_KR[idx]
+    if idx == 0:
+        return "good", None
+    return "bad", CLASS_NAMES_KR[idx]
